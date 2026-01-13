@@ -16,6 +16,8 @@ using namespace std;
 class Task
 {
 public:
+    virtual ~Task() = default;
+
     Task(string number, const string& in_file) {
         _name = std::move(number);
         _input = ifstream(in_file);

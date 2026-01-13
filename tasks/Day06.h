@@ -47,11 +47,59 @@ public:
             cout << total << std::endl;
     }
     void run2(bool print_result) override {
+        std::string line;
+        vector<string> lines;
+        while (getline(_input, line)) {
+            lines.push_back(line);
+        }
+
+        long long total = 0;
+        vector<long long> nums;
+        char operand = ' ';
+        for (int i = 0; i < lines[0].size(); ++i) {
+            bool is_empty = true;
+            long long num = 0;
+            for (int j = 0; j < lines.size()-1; ++j) {
+                if (lines[j][i] != ' ') {
+                    is_empty = false;
+                    num *= 10;
+                    num += lines[j][i] - '0';
+                }
+            }
+            char op_line_char = lines[lines.size()-1][i];
+            if (op_line_char == '+' or op_line_char == '*') {
+                operand = op_line_char;
+            }
+            if (is_empty) {
+                long long result = get_result(nums, operand);
+                total += result;
+                nums.clear();
+                operand = ' ';
+            } else
+                nums.push_back(num);
+        }
+        long long result = get_result(nums, operand);
+        total += result;
 
         if (print_result)
-            cout << "todo" << std::endl;
+            cout << total << std::endl;
     }
 
 private:
+    static long long get_result(const vector<long long> &numbers, char operand) {
+        long long result = 0;
+        if (operand == '+') {
+            for (auto & number : numbers) {
+                result += number;
+            }
+        }
+        if (operand == '*') {
+            result = 1;
+            for (auto & number : numbers) {
+                result *= number;
+            }
+        }
+        return result;
+    }
 };
 #endif //AOC2023_DAY06_H
