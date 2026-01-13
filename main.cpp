@@ -1,5 +1,9 @@
 #include "infra/Task.h"
 #include "tasks/Day01.h"
+#include "tasks/Day03.h"
+#include "tasks/Day04.h"
+#include "tasks/Day05.h"
+#include "tasks/Day06.h"
 
 void generate_readme(string filename, vector<Task *> tasks) {
     ofstream readme(filename);
@@ -12,11 +16,14 @@ void generate_readme(string filename, vector<Task *> tasks) {
 
 int main()
 {
-    //Day01 d1 = Day01("01", "../../test01");
     Day01 d1 = Day01("01", "../input/input01.txt");
+    Day03 d3 = Day03("03", "../input/input03.txt");
+    Day04 d4 = Day04("04", "../input/input04.txt");
+    Day05 d5 = Day05("05", "../input/input05.txt");
+    Day06 d6 = Day06("06", "../input/input06.txt");
 
     vector<Task *> tasks{
-        &d1
+        &d1, &d3, &d4, &d5, &d6
     };
 
     for (auto task: tasks) {
