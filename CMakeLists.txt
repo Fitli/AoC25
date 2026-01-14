@@ -6,10 +6,11 @@ set(CMAKE_CXX_FLAGS -Ofast)
 
 add_executable(aoc2025 main.cpp
         infra/Task.h
+        helper/string_manipulation.h
         tasks/Day01.h
         tasks/Day03.h
         tasks/Day04.h
         tasks/Day05.h
-        helper/string_manipulation.h
         tasks/Day06.h
+        tasks/Day07.h
 )

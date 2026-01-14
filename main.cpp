@@ -4,6 +4,7 @@
 #include "tasks/Day04.h"
 #include "tasks/Day05.h"
 #include "tasks/Day06.h"
+#include "tasks/Day07.h"
 
 void generate_readme(string filename, vector<Task *> tasks) {
     ofstream readme(filename);
@@ -21,9 +22,10 @@ int main()
     Day04 d4 = Day04("04", "../input/input04.txt");
     Day05 d5 = Day05("05", "../input/input05.txt");
     Day06 d6 = Day06("06", "../input/input06.txt");
+    Day07 d7 = Day07("07", "../input/input07.txt");
 
     vector<Task *> tasks{
-        &d1, &d3, &d4, &d5, &d6
+        &d1, &d3, &d4, &d5, &d6, &d7
     };
 
     for (auto task: tasks) {
