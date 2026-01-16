@@ -19,8 +19,6 @@ public:
         set<int> beams;
         int count = 0;
         while (getline(_input, line)) {
-            set<int> add_beams;
-            set<int> remove_beams;
             for (int i = 0; i < line.length(); i++) {
                 if (line[i] == 'S') {
                     beams.insert(i);
