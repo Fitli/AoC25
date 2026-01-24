@@ -15,4 +15,5 @@ add_executable(aoc2025 main.cpp
         tasks/Day07.h
         tasks/Day08.h
         tasks/Day09.h
+        tasks/Day10.h
 )
