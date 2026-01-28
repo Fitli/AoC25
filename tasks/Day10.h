@@ -22,7 +22,6 @@ public:
             cout << count << std::endl;
     }
     void run2(bool print_result) override {
-        return;
         std::string line;
         int count = 0;
         while (getline(_input, line) and !line.empty()) {
@@ -92,52 +91,134 @@ private:
         return button;
     }
 
-    struct Joltage_State {
-        vector<int> joltages;
-        long long count = 0;
+    struct PartialSolution {
+        vector<int> num_pushed;
+        vector<bool> is_solved;
+    };
+
+    class LinearEquation {
+    public:
+        vector<int> coefficients;
+        int result;
+        int num_variables;
+
+        LinearEquation(const vector<int> &coeffs, const int &res, const int &n_vars) {
+            coefficients = coeffs;
+            result = res;
+            num_variables = n_vars;
+        }
+        LinearEquation(int n_vars) {
+            num_variables = n_vars;
+            coefficients = vector<int>(n_vars);
+            result = 0;
+        }
+
+        void elliminate(const LinearEquation &other, int pos) {
+            if (coefficients[pos] == 0)
+                return;
+            int c_this = other.coefficients[pos];
+            int c_other = coefficients[pos];
+            for (int i = 0; i < coefficients.size(); i++) {
+                coefficients[i] = coefficients[i] * c_this - other.coefficients[i] * c_other;
+            }
+            result = result * c_this - other.result * c_other;
+        }
+
+        vector<PartialSolution> solve(PartialSolution partial_solution, int &upper_bound) {
+            vector<PartialSolution> solutions;
+            vector<int> solvable_members;
+            int partial_result = 0;
+            int sol_sum = 0;
+            for (int i = 0; i < num_variables; i++) {
+                if (not partial_solution.is_solved[i] and coefficients[i] != 0) {
+                    solvable_members.push_back(i);
+                }
+                else {
+                    partial_result += partial_solution.num_pushed[i] * coefficients[i];
+                    sol_sum += partial_solution.num_pushed[i];
+                }
+            }
+            if (solvable_members.empty()) {
+                if (partial_result == result) {
+                    solutions.push_back(partial_solution);
+                }
+                return solutions;
+            }
+            if (solvable_members.size() == 1) {
+                int member_solution = (result - partial_result) / coefficients[solvable_members[0]];
+                if (member_solution < 0 or member_solution > upper_bound - sol_sum) {
+                    return solutions;
+                }
+                partial_solution.num_pushed[solvable_members[0]] = member_solution;
+                partial_solution.is_solved[solvable_members[0]] = true;
+                return solve(partial_solution, upper_bound);
+            }
+            int first_solvable = solvable_members[0];
+            for (int i = 0; i <= upper_bound-sol_sum; i++) {
+                partial_solution.is_solved[first_solvable] = true;
+                partial_solution.num_pushed[first_solvable] = i;
+                vector<PartialSolution> new_sols = solve(partial_solution, upper_bound);
+                solutions.insert(solutions.end(), new_sols.begin(), new_sols.end());
+            }
+            return solutions;
+        }
     };
 
     static long long solve_task2(string &line) {
         vector<string> tokens = split(line, ' ');
         vector<int> result = parse_joltage_result(tokens[tokens.size()-1]);
-        vector<vector<int>> buttons;
-        for (int i = 1; i < tokens.size()-1; i++) {
-            buttons.push_back(parse_button_vector(tokens[i], result.size()));
+        int n_lights = result.size();
+        int n_buttons = tokens.size()-2;
+        int min_pushes = 0;
+        vector<LinearEquation> equations(n_lights, LinearEquation(n_buttons));
+        for (int i = 0; i < n_buttons; i++) {
+            vector<int> button = parse_buttons(tokens[i+1]);
+            for (int l: button) {
+                equations[l].coefficients[i] = 1;
+            }
         }
-
-        auto state_cmp = [](Joltage_State a, Joltage_State b) {return a.count > b.count;};
-        priority_queue<Joltage_State, vector<Joltage_State>, decltype(state_cmp)> pq(state_cmp);
-        set<vector<int>> explored;
-
-        pq.push(Joltage_State(vector<int>(result.size(), 0), 0));
-        while (!pq.empty()) {
-            Joltage_State state = pq.top();
-            pq.pop();
-            for (auto &button:buttons) {
-                bool joltage_too_big = false;
-                bool result_met = true;
-                auto new_state = state;
-                for (int light = 0; light < button.size(); light++) {
-                    new_state.joltages[light] += button[light];
-                    if (new_state.joltages[light] != result[light]) {
-                        result_met = false;
+        for (int i = 0; i < n_lights; i++) {
+            equations[i].result = result[i];
+            min_pushes += result[i];
+        }
+        vector<LinearEquation> diagonalized;
+        for (int i = 0; i < n_buttons; i++) {
+            for (auto j = equations.begin(); j < equations.end(); ++j) {
+                if (j->coefficients[i] != 0) {
+                    LinearEquation moved = *j;
+                    diagonalized.push_back(moved);
+                    equations.erase(j);
+                    for (auto k = equations.begin(); k < equations.end(); ++k) {
+                        (*k).elliminate(moved, i);
                     }
-                    if (new_state.joltages[light] > result[light]) {
-                        joltage_too_big = true;
-                        break;
-                    }
-                }
-                new_state.count++;
-                if (result_met) {
-                    cout << new_state.count << endl;
-                    return new_state.count;
-                }
-                if (!joltage_too_big and !explored.contains(new_state.joltages)) {
-                    pq.push(new_state);
-                    explored.insert(new_state.joltages);
+                    break;
                 }
             }
         }
+
+        int upper_bound = 8;
+        while (upper_bound < min_pushes) {
+            upper_bound = min(upper_bound*2, min_pushes);
+            vector<PartialSolution> solutions(1, PartialSolution(vector<int>(n_buttons), vector<bool>(n_buttons)));
+            for (int i = diagonalized.size()-1; i >= 0; i--) {
+                vector<PartialSolution> new_solutions;
+                for (auto &solution: solutions) {
+                    vector<PartialSolution> added_solutions = diagonalized[i].solve(solution, upper_bound);
+                    new_solutions.insert(new_solutions.end(), added_solutions.begin(), added_solutions.end());
+                }
+                solutions = new_solutions;
+            }
+
+            for (auto &solution: solutions) {
+                int num_pushes=0;
+                for (int button:solution.num_pushed) {
+                    num_pushes += button;
+                }
+                if (num_pushes < min_pushes)
+                    min_pushes = num_pushes;
+            }
+        }
+        return min_pushes;
     }
 
     // parse result representation in format {3,5,4,7}
@@ -151,13 +232,13 @@ private:
         return joltages;
     }
 
-    // parse button mask in format (1,3) as vector of 0s and 1s
-    static vector<int> parse_button_vector (string s, int len) {
-        vector<int> lights(len);
+    // parse button in format (1,3) as vector of ints
+    static vector<int> parse_buttons (string s) {
+        vector<int> lights;
         s = s.substr(1, s.size()-2);
         vector<string> tokens = split(s, ',');
         for (const string& token:tokens) {
-            lights[stoi(token)] = 1;
+            lights.push_back(stoi(token));
         }
         return lights;
     }

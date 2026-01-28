@@ -39,7 +39,7 @@ int main()
         task->print_results();
     }
 
-    //generate_readme("../readme.md", tasks);
+    generate_readme("../readme.md", tasks);
     return 0;
 }
 
