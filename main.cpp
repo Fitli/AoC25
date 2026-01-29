@@ -8,6 +8,7 @@
 #include "tasks/Day08.h"
 #include "tasks/Day09.h"
 #include "tasks/Day10.h"
+#include "tasks/Day11.h"
 
 void generate_readme(string filename, vector<Task *> tasks) {
     ofstream readme(filename);
@@ -29,9 +30,12 @@ int main()
     auto d8 = Day08("08", "../input/input08.txt");
     auto d9 = Day09("09", "../input/input09.txt");
     auto d10 = Day10("10", "../input/input10.txt");
+    auto d11 = Day11("11", "../input/input11.txt");
 
     vector<Task *> tasks{
-        &d1, &d3, &d4, &d5, &d6, &d7, &d8, &d9, &d10
+        &d1, &d3, &d4, &d5, &d6, &d7, &d8, &d9,
+        &d10,
+        &d11
     };
 
     for (auto task: tasks) {
